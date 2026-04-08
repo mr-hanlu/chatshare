@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README_zh.md)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?height=28)](https://opensource.org/licenses/MIT)  [![Version](https://img.shields.io/badge/Version-v0.1.0-brightgreen.svg?height=28)]()  [![GreasyFork](https://img.shields.io/badge/GreasyFork-install-red.svg?height=28)](https://greasyfork.org/zh-CN/scripts/572918-chatshare-ai-%E5%AF%B9%E8%AF%9D%E4%B8%8B%E8%BD%BD%E5%99%A8)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?height=28)](https://opensource.org/licenses/MIT)  [![Version](https://img.shields.io/badge/Version-v0.2.0-brightgreen.svg?height=28)]()  [![GreasyFork](https://img.shields.io/badge/GreasyFork-install-red.svg?height=28)](https://greasyfork.org/zh-CN/scripts/572918-chatshare-ai-%E5%AF%B9%E8%AF%9D%E4%B8%8B%E8%BD%BD%E5%99%A8)
 
 ChatShare is a highly generalized Tampermonkey script designed to export conversations from major AI platforms into **Markdown documents** or **High-Fidelity Long Images** with a single click.
 
