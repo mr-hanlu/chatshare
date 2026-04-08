@@ -561,7 +561,7 @@
 
         if (currentHoverElement) { removeHover(currentHoverElement); currentHoverElement = null; }
 
-        btnImg.disabled = true; btnImg.textContent = '⏳ 准备中...';
+        btnImg.disabled = true; btnImg.textContent = '⏳ 拉取字体/资源中(初次较慢)...';
 
         try {
             const blobData = await renderToCanvas();
@@ -656,7 +656,26 @@
         } finally { if (document.body.contains(outerWrapper)) document.body.removeChild(outerWrapper); }
     }
 
-    function loadCSS() { return new Promise((resolve) => { try { const cssText = GM_getResourceText("katexCSS"); if (cssText) { const style = document.createElement('style'); style.textContent = cssText; document.head.appendChild(style); } } catch (e) { } resolve(); }); }
+    // 🟢 增强版 loadCSS：加入防重复机制，彻底修复相对路径 404 引发的漫长超时问题
+    function loadCSS() {
+        return new Promise((resolve) => {
+            if (document.getElementById('chatshare-katex-style')) return resolve();
+            try {
+                let cssText = GM_getResourceText("katexCSS");
+                if (cssText) {
+                    // 将相对路径替换为 CDN 绝对路径
+                    cssText = cssText.replace(/url\((?:'|")?fonts\//g, 'url(https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/fonts/');
+                    const style = document.createElement('style');
+                    style.id = 'chatshare-katex-style';
+                    style.textContent = cssText;
+                    document.head.appendChild(style);
+                }
+            } catch (e) {
+                console.error('[ChatShare] loadCSS Error:', e);
+            }
+            resolve();
+        });
+    }
 
     function downloadFile(content, ext, type, isDataUrl = false) {
         const a = document.createElement('a');
@@ -691,6 +710,62 @@
         cleanup();
     };
     window.addEventListener('hashchange', cleanup);
+
+    // ================= 🚀 后台无感预热引擎 =================
+    function warmUpHtmlToImage() {
+        if (typeof window.htmlToImage === 'undefined') return;
+
+        console.log('[ChatShare Extractor] 开始后台静默预热渲染引擎...');
+        // 创建一个极其微小、不可见的“幽灵”节点
+        const ghostNode = document.createElement('div');
+        ghostNode.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none;';
+        ghostNode.textContent = ' '; // 赋予空文本，激活字体解析体系
+        document.body.appendChild(ghostNode);
+
+        // 强迫 html-to-image 渲染幽灵节点，迫使底层引擎加载所有 CSS 并将其缓存为 Base64
+        window.htmlToImage.toPixelData(ghostNode, {
+            cacheBust: false,
+            useCORS: true,
+            allowTaint: false,
+            // 屏蔽不需要的重型资源请求，加速预热
+            filter: (node) => node.tagName ? !['IMG', 'SCRIPT', 'VIDEO', 'IFRAME'].includes(node.tagName.toUpperCase()) : true
+        }).then(() => {
+            console.log('[ChatShare Extractor] 预热完成，字体及样式已全部进入内存缓存！');
+        }).catch((e) => {
+            // 预热阶段的跨域报错静默吞掉即可，不影响使用
+            console.log('[ChatShare Extractor] 预热部分结束(含预期内跨域阻断)。');
+        }).finally(() => {
+            if (document.body.contains(ghostNode)) {
+                document.body.removeChild(ghostNode);
+            }
+        });
+    }
+
+    function scheduleWarmUp() {
+        // 先确保公式样式存在，以便被一并预热
+        loadCSS();
+
+        // 充分利用主线程空闲时间，绝不造成页面卡顿
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => {
+                setTimeout(warmUpHtmlToImage, 2000);
+            }, { timeout: 10000 });
+        } else {
+            setTimeout(warmUpHtmlToImage, 4000);
+        }
+    }
+
+    // 监控页面路由的初期重构，保证即使单页应用重新加载也能兜底预热
+    const warmUpObserver = new MutationObserver(() => {
+        if (typeof window.htmlToImage !== 'undefined' && !window._chatshare_warmed) {
+            window._chatshare_warmed = true;
+            scheduleWarmUp();
+        }
+    });
+    warmUpObserver.observe(document.head, { childList: true });
+
+    // 启动首次预热
+    scheduleWarmUp();
 
     console.log('[ChatShare Extractor] 挂载成功');
 })();
