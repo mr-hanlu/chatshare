@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatShare - AI 对话下载器
 // @namespace    https://github.com/mr-hanlu/chatshare
-// @version      0.1.0
+// @version      0.2.0
 // @description  支持几乎所有的ai对话网页的 Markdown 导出 + 图像导出。需要支持新网址，在@match中自行追加使用。
 // @author       hanlu
 // @license      MIT
