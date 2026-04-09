@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         ChatShare - AI 对话下载器
 // @namespace    https://github.com/mr-hanlu/chatshare
-// @version      0.2.0
-// @description  支持几乎所有的ai对话网页的 Markdown 导出 + 图像导出。需要支持新网址，在@match中自行追加使用。
+// @version      0.2.1
+// @description  支持几乎所有的ai对话网页的 Markdown 导出 + 图像导出。需要支持新网址，在@match中自行追加使用。主要用于：claude｜chatgpt｜gemini｜grok｜doubao｜qwen｜deepseek｜minimax｜kimi｜yuanbao｜chatglm｜openrouter｜poe等。
 // @author       hanlu
 // @license      MIT
 // @updateURL    https://raw.githubusercontent.com/mr-hanlu/chatshare/refs/heads/main/chatshare.user.js
@@ -14,6 +14,7 @@
 // @match        https://claude.ai/*
 // @match        https://chatgpt.com/*
 // @match        https://chat.openai.com/*
+// @match        https://x.com/*
 // @match        https://x.com/i/grok*
 // @match        https://grok.com/*
 // @match        https://*.grok.com/*
@@ -28,6 +29,7 @@
 // @match        https://yuanbao.tencent.com/*
 // @match        https://chat.z.ai/*
 // @match        https://chatglm.cn/*
+// @match        https://agent.minimaxi.com/*
 // @match        https://aistudio.xiaomimimo.com/*
 // @match        https://openrouter.ai/*
 // @match        https://poe.com/*
