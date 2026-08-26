@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README_zh.md)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?height=28)](https://opensource.org/licenses/MIT)  [![Version](https://img.shields.io/badge/Version-v0.2.0-brightgreen.svg?height=28)]()  [![GreasyFork](https://img.shields.io/badge/GreasyFork-install-red.svg?height=28)](https://greasyfork.org/zh-CN/scripts/572918-chatshare-ai-%E5%AF%B9%E8%AF%9D%E4%B8%8B%E8%BD%BD%E5%99%A8)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?height=28)](https://opensource.org/licenses/MIT)  [![Version](https://img.shields.io/badge/Version-v0.2.2-brightgreen.svg?height=28)]()  [![GreasyFork](https://img.shields.io/badge/GreasyFork-install-red.svg?height=28)](https://greasyfork.org/zh-CN/scripts/572918-chatshare-ai-%E5%AF%B9%E8%AF%9D%E4%B8%8B%E8%BD%BD%E5%99%A8)
 
 ChatShare is a highly generalized Tampermonkey script designed to export conversations from major AI platforms into **Markdown documents** or **High-Fidelity Long Images** with a single click.
 
@@ -10,12 +10,18 @@ Unlike other export tools that constantly break due to website UI updates, ChatS
 
 ![ChatShare Demo GIF](./demo/demo.gif)
 
+## 🆕 What's New in v0.2.2
+
+*   **Visible role identification**: Selected content is labeled directly on the page. Blue represents `User`, green represents `AI`, and the floating panel shows both the total selection count and the role breakdown.
+*   **Manual role correction**: If a role is detected incorrectly, hold `Shift` and click the selected content to switch between `User` and `AI`. The shortcut remains visible in the floating panel without an extra popup.
+*   **Improved image preview compatibility**: Image exports now use the actual PNG format with a `.png` extension, fixing thumbnail and preview issues in operating systems and image viewers.
+
 ## ✨ Why Choose ChatShare?
 
 *   🎯 **Say Goodbye to Full-Page Exports, Support "Precise Selection"**
-    Most tools out there blindly export the entire page. ChatShare introduces a DevTools-like "Selection Mode". Just hover and click to select exactly the message blocks you want. No more redundant fluff.
+    Most tools out there blindly export the entire page. ChatShare introduces a DevTools-like "Selection Mode". Just hover and click to select exactly the message blocks you want; selected blocks receive visible role labels for immediate verification.
 *   🧬 **Truly "Generalized" Algorithm, Immune to UI Updates**
-    We don't stack lifeless `querySelector('.chat-message-xxx')` codes. By intelligently guessing the chat role (User/AI) based on node characteristics and recursively computing inline styles, we strip away the site's layout constraints. No matter how the official site updates, the export remains robust.
+    We don't stack lifeless `querySelector('.chat-message-xxx')` codes. Role detection combines message semantics, accessibility labels, test identifiers, and multi-level ancestor signals, with the original heuristic retained as a fallback. Incorrect results can be corrected immediately with `Shift + click`. ChatShare also recursively computes inline styles to strip away the site's layout constraints.
 *   🛡️ **Multimedia Deep Cleanup & Crash Prevention**
     Web-to-image conversions often crash due to cross-origin (CORS) issues or iframe nodes. ChatShare automatically neutralizes "multimedia bombs" and reconstructs cross-origin image resources. It also features a **large-size image defense mechanism**, intercepting and warning when the layout height exceeds the `16000px` safety threshold to protect your browser from memory overflow.
 *   🧮 **Native Math Formulas & Code Highlighting Support**
@@ -29,6 +35,14 @@ Unlike other export tools that constantly break due to website UI updates, ChatS
 4. Click the links below for 1-click installation:
    * 👉 **[Install via GreasyFork](https://greasyfork.org/zh-CN/scripts/572918-chatshare-ai-%E5%AF%B9%E8%AF%9D%E4%B8%8B%E8%BD%BD%E5%99%A8)**
    * 👉 **[Install via GitHub Raw](https://raw.githubusercontent.com/mr-hanlu/chatshare/refs/heads/main/chatshare.user.js)**
+
+## 🧭 How to Use
+
+1. Click the 🤖 floating button on the right side of the page to enter selection mode.
+2. Hover over and click the content you want to export. A blue label means `User`, while a green label means `AI`.
+3. If the detected role is incorrect, hold `Shift` and click the selected content to switch its role.
+4. Check the total and `User` / `AI` counts in the floating panel, then export as Markdown or a PNG image.
+5. Press `Esc` or close the floating panel to exit selection mode and clear the current selection.
 
 ## 🛠️ How to Add Support for New Sites?
 
@@ -50,6 +64,8 @@ To achieve extreme generalization and security, we made some trade-offs in our u
 
 *   **⏱️ Image Generation is Not Instant**
     To ensure high fidelity and avoid the common HTML-to-Image Canvas Taint issues, the script recursively redraws and preprocesses images before exporting. Thus, exporting long conversations requires a brief waiting period.
+*   **🧭 Role Detection Can Still Be Affected by Page Structure**
+    ChatShare prioritizes semantic attributes and ancestor structure, but highly customized pages may still be misclassified. Use `Shift + click` to correct the role; exports will use the corrected value.
 *   **🧩 Minor Markdown Formatting Imperfections on Rare Occasions**
     Our philosophy is **"pursue algorithmic generalization"** rather than piling up unmaintainable hardcoded logic for specific sites. Therefore, for some deeply customized web layouts using non-standard semantic tags, the exported Markdown might not perfectly replicate the original (though it will never affect readability).
 

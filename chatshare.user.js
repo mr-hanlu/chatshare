@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatShare - AI 对话下载器
 // @namespace    https://github.com/mr-hanlu/chatshare
-// @version      0.2.1
+// @version      0.2.2
 // @description  支持几乎所有的ai对话网页的 Markdown 导出 + 图像导出。需要支持新网址，在@match中自行追加使用。主要用于：claude｜chatgpt｜gemini｜grok｜doubao｜qwen｜deepseek｜minimax｜kimi｜yuanbao｜chatglm｜openrouter｜poe等。
 // @author       hanlu
 // @license      MIT
@@ -45,7 +45,7 @@
     'use strict';
 
     if (window.self !== window.top) return;
-    if (document.getElementById('chatshare-extractor-host')) return;
+    if (document.getElementById('chatshare-optimized-host')) return;
 
     let isSelectMode = false;
     let selectedElements = new Set();
@@ -55,10 +55,13 @@
     let startX, startY, initLeft, initTop;
     let isProcessing = false;
     let hasWarnedLongImage = false;
+    const roleOverrides = new WeakMap();
+    let roleRenderQueued = false;
+    const selectedResizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(() => queueRoleOverlayRender()) : null;
 
     // ================= UI 构建与守护 =================
     const host = document.createElement('div');
-    host.id = 'chatshare-extractor-host';
+    host.id = 'chatshare-optimized-host';
     host.style.cssText = `position:fixed;z-index:2147483647;top:30%;left:auto;right:10px;transition:left .35s cubic-bezier(.22,1,.36,1),right .35s cubic-bezier(.22,1,.36,1);`;
     const shadow = host.attachShadow({ mode: 'open' });
 
@@ -82,7 +85,12 @@
         .close-btn{cursor:pointer;color:#9ca3af;font-size:18px;padding:2px;border-radius:4px}.close-btn:hover{color:#ef4444;background:rgba(0,0,0,.05)}
         .body{padding:12px;display:flex;flex-direction:column;gap:8px}
         .stats{font-size:12px;color:#6b7280;text-align:center;margin:2px 0;padding-bottom:4px;border-bottom:1px dashed #e5e7eb}
-        .stats span{color:#3b82f6;font-weight:700;font-size:14px}
+        .stats .count{color:#3b82f6;font-weight:700;font-size:14px}
+        .stats .user-count{color:#2563eb;font-weight:700}.stats .ai-count{color:#059669;font-weight:700}
+        .role-hint{font-size:11px;line-height:1.45;text-align:center;color:#64748b;background:#f8fafc;border-radius:7px;padding:6px 8px}
+        .role-layer{position:fixed;inset:0;pointer-events:none;z-index:2147483646}
+        .role-badge{position:fixed;padding:2px 7px;border-radius:5px 5px 0 0;color:#fff;font:700 11px/1.55 system-ui,-apple-system,sans-serif;white-space:nowrap;box-shadow:0 2px 7px rgba(0,0,0,.16)}
+        .role-badge.user{background:#2563eb}.role-badge.ai{background:#059669}
         button{border:none;padding:10px;border-radius:8px;font-weight:600;cursor:pointer;transition:all .15s;font-size:13px}
         button:active{transform:scale(.98)}button:disabled{opacity:.5;cursor:not-allowed;transform:none}
         .btn-md{background:#10b981;color:#fff}.btn-md:hover{background:#059669}
@@ -100,22 +108,27 @@
     const fab = document.createElement('div'); fab.className = 'fab right'; fab.textContent = '🤖';
     const panel = document.createElement('div'); panel.className = 'panel';
     const header = document.createElement('div'); header.className = 'header'; header.id = 'drag-handle';
-    const titleSpan = document.createElement('span'); titleSpan.textContent = '📦 对话提取器';
+    const titleSpan = document.createElement('span'); titleSpan.textContent = '📦 对话提取器 · 优化版';
     const btnClose = document.createElement('span'); btnClose.className = 'close-btn'; btnClose.textContent = '×';
     header.append(titleSpan, btnClose);
     const body = document.createElement('div'); body.className = 'body';
     const statsContainer = document.createElement('div'); statsContainer.className = 'stats';
     statsContainer.append(document.createTextNode('已选中 '));
-    const countSpan = document.createElement('span'); countSpan.textContent = '0';
-    statsContainer.append(countSpan, document.createTextNode(' 段'));
+    const countSpan = document.createElement('span'); countSpan.className = 'count'; countSpan.textContent = '0';
+    const userCountSpan = document.createElement('span'); userCountSpan.className = 'user-count'; userCountSpan.textContent = '0';
+    const aiCountSpan = document.createElement('span'); aiCountSpan.className = 'ai-count'; aiCountSpan.textContent = '0';
+    statsContainer.append(countSpan, document.createTextNode(' 段 · 👤 '), userCountSpan, document.createTextNode(' / 🤖 '), aiCountSpan);
+    const roleHint = document.createElement('div'); roleHint.className = 'role-hint'; roleHint.textContent = 'Shift + 点击已选内容：切换 User / AI';
     const btnMd = document.createElement('button'); btnMd.className = 'btn-md'; btnMd.textContent = '📄 导出 Markdown';
     const btnImg = document.createElement('button'); btnImg.className = 'btn-img'; btnImg.textContent = '🖼️ 导出图像';
 
-    body.append(statsContainer, btnMd, btnImg);
+    body.append(statsContainer, roleHint, btnMd, btnImg);
     panel.append(header, body);
 
     const toastEl = document.createElement('div'); toastEl.className = 'sc-toast';
+    const roleLayer = document.createElement('div'); roleLayer.className = 'role-layer';
     shadow.appendChild(toastEl);
+    shadow.appendChild(roleLayer);
     shadow.appendChild(fab); shadow.appendChild(panel);
 
     const dragHandle = header;
@@ -156,9 +169,11 @@
             if (!isDragging && host.getBoundingClientRect) {
                 snapToEdge();
                 if (isPanelOpen) adjustPanelPosition();
+                queueRoleOverlayRender();
             }
         }, 150);
     });
+    window.addEventListener('scroll', queueRoleOverlayRender, true);
 
     function snapToEdge() {
         host.style.transition = '';
@@ -182,19 +197,29 @@
     function closePanelAndExit() { isPanelOpen = false; panel.classList.remove('show'); fab.style.transform = ''; exitSelectMode(); }
 
     // ================= 选取模式 =================
-    function applyHighlight(el) { if (el && el.style) { el.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'; el.style.boxShadow = 'inset 0 0 0 2px #10b981'; el.style.outline = 'none'; el.setAttribute('data-sc-selected', 'true'); } }
+    function applyHighlight(el) {
+        if (!el?.style) return;
+        const role = guessRole(el);
+        const isUser = role === 'user';
+        el.style.backgroundColor = isUser ? 'rgba(37, 99, 235, 0.08)' : 'rgba(16, 185, 129, 0.1)';
+        el.style.boxShadow = `inset 0 0 0 2px ${isUser ? '#2563eb' : '#10b981'}`;
+        el.style.outline = 'none';
+        el.setAttribute('data-sc-selected', 'true');
+    }
     function removeHighlight(el) { if (el && el.style) { el.style.removeProperty('background-color'); el.style.removeProperty('box-shadow'); el.style.removeProperty('outline'); el.removeAttribute('data-sc-selected'); } }
     function applyHover(el) { if (el && el.style && el.getAttribute('data-sc-selected') !== 'true') el.style.outline = '2px dashed #3b82f6'; }
     function removeHover(el) { if (el && el.style && el.getAttribute('data-sc-selected') !== 'true') el.style.removeProperty('outline'); }
     function forceClearAll() {
         if (currentHoverElement) { removeHover(currentHoverElement); currentHoverElement = null; }
-        selectedElements.forEach(el => removeHighlight(el)); selectedElements.clear(); countSpan.textContent = '0';
+        selectedElements.forEach(el => { removeHighlight(el); selectedResizeObserver?.unobserve(el); }); selectedElements.clear();
+        updateRoleUI();
         hasWarnedLongImage = false;
     }
 
     function enterSelectMode() {
         isSelectMode = true; document.addEventListener('mouseover', onMouseOver, true); document.addEventListener('mouseout', onMouseOut, true); document.addEventListener('click', onDocClick, true);
         statsContainer.style.display = 'block'; btnMd.style.display = 'block'; btnImg.style.display = 'block';
+        updateRoleUI();
     }
     function exitSelectMode() {
         isSelectMode = false; document.removeEventListener('mouseover', onMouseOver, true); document.removeEventListener('mouseout', onMouseOut, true); document.removeEventListener('click', onDocClick, true);
@@ -227,11 +252,21 @@
         const isSelected = el.getAttribute('data-sc-selected') === 'true';
 
         if (isSelected) {
-            removeHighlight(el); selectedElements.delete(el); if (currentHoverElement === el) applyHover(el);
+            if (e.shiftKey) {
+                const nextRole = guessRole(el) === 'user' ? 'ai' : 'user';
+                roleOverrides.set(el, nextRole);
+                applyHighlight(el);
+                updateRoleUI();
+                return;
+            }
+            removeHighlight(el); selectedElements.delete(el); selectedResizeObserver?.unobserve(el); if (currentHoverElement === el) applyHover(el);
+            updateRoleUI();
         } else {
             const toRemove = []; selectedElements.forEach(s => { if (s.contains(el) || el.contains(s)) toRemove.push(s); });
-            toRemove.forEach(s => { removeHighlight(s); selectedElements.delete(s); });
+            toRemove.forEach(s => { removeHighlight(s); selectedElements.delete(s); selectedResizeObserver?.unobserve(s); });
             applyHighlight(el); selectedElements.add(el); if (currentHoverElement === el) removeHover(el);
+            selectedResizeObserver?.observe(el);
+            updateRoleUI();
 
             const th = calcTotalEstimatedHeight();
             if (th > 16000 && !hasWarnedLongImage) {
@@ -244,11 +279,77 @@
     // ================= 基础工具 =================
     const STYLE_WHITELIST = ['color', 'backgroundColor', 'borderColor', 'outlineColor', 'fill', 'stroke', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'lineHeight', 'letterSpacing', 'textDecoration', 'textAlign', 'whiteSpace', 'display', 'width', 'maxWidth', 'minWidth', 'overflow', 'overflowX', 'overflowY', 'boxSizing', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'flexDirection', 'flexWrap', 'flexGrow', 'flexShrink', 'flexBasis', 'alignItems', 'alignSelf', 'justifyContent', 'gap', 'gridTemplateColumns', 'gridTemplateRows', 'gridColumn', 'gridRow', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderStyle', 'borderRadius', 'opacity', 'verticalAlign'];
 
+    const USER_ROLE_RE = /(?:^|[\s_:\-])(user|human|prompt|question)(?:$|[\s_:\-])|用户|提问者/i;
+    const AI_ROLE_RE = /(?:^|[\s_:\-])(assistant|bot|model|agent|answer|response|claude|chatgpt|gemini|grok|deepseek|qwen|kimi|doubao)(?:$|[\s_:\-])|助手|模型|回答者|智能体/i;
+
     function guessRole(el) {
-        const r = (el.dataset.messageAuthorRole || el.dataset.role || el.dataset.sender || '').toLowerCase();
-        if (r.includes('user')) return 'user'; if (r.includes('assistant') || r.includes('ai')) return 'ai';
-        const html = el.innerHTML.toLowerCase(); if (html.includes('author-role="user"')) return 'user'; if (html.includes('author-role="assistant"')) return 'ai';
+        const overridden = roleOverrides.get(el);
+        if (overridden) return overridden;
+
+        let userScore = 0, aiScore = 0, current = el;
+        for (let depth = 0; current && current !== document.body && depth < 7; depth++, current = current.parentElement) {
+            const weight = 7 - depth;
+            const explicit = [
+                current.getAttribute('data-message-author-role'), current.getAttribute('data-author-role'),
+                current.getAttribute('data-role'), current.getAttribute('data-sender'), current.getAttribute('data-author')
+            ].filter(Boolean).join(' ').toLowerCase();
+            const semantic = [
+                current.getAttribute('aria-label'), current.getAttribute('data-testid'), current.id,
+                typeof current.className === 'string' ? current.className : ''
+            ].filter(Boolean).join(' ').toLowerCase();
+            if (USER_ROLE_RE.test(explicit)) userScore += weight * 3;
+            if (AI_ROLE_RE.test(explicit)) aiScore += weight * 3;
+            if (USER_ROLE_RE.test(semantic)) userScore += weight;
+            if (AI_ROLE_RE.test(semantic)) aiScore += weight;
+        }
+
+        if (userScore > aiScore && userScore >= 3) return 'user';
+        if (aiScore > userScore && aiScore >= 3) return 'ai';
+
+        // 没有可靠语义信号时保留旧版兜底逻辑。
+        const html = el.innerHTML.toLowerCase();
+        if (html.includes('author-role="user"')) return 'user'; if (html.includes('author-role="assistant"')) return 'ai';
         return (el.querySelectorAll('pre,code,table,.katex').length > 0 || el.innerText.trim().length > 150) ? 'ai' : 'user';
+    }
+
+    function updateRoleUI() {
+        let users = 0, ais = 0;
+        for (const el of selectedElements) {
+            if (guessRole(el) === 'user') users++; else ais++;
+        }
+        countSpan.textContent = selectedElements.size;
+        userCountSpan.textContent = users;
+        aiCountSpan.textContent = ais;
+        queueRoleOverlayRender();
+    }
+
+    function queueRoleOverlayRender() {
+        if (roleRenderQueued) return;
+        roleRenderQueued = true;
+        requestAnimationFrame(() => {
+            roleRenderQueued = false;
+            renderRoleOverlays();
+        });
+    }
+
+    function renderRoleOverlays() {
+        roleLayer.replaceChildren();
+        if (!isSelectMode) return;
+
+        for (const el of selectedElements) {
+            if (!el.isConnected) continue;
+            const rect = el.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0 || rect.bottom < 0 || rect.top > window.innerHeight) continue;
+
+            const role = guessRole(el);
+            const badge = document.createElement('div');
+            badge.className = `role-badge ${role}`;
+            badge.textContent = role === 'user' ? '👤 User' : '🤖 AI';
+            const top = rect.top >= 23 ? rect.top - 21 : rect.top + 2;
+            badge.style.left = `${Math.max(2, Math.min(window.innerWidth - 76, rect.left))}px`;
+            badge.style.top = `${Math.max(2, top)}px`;
+            roleLayer.appendChild(badge);
+        }
     }
 
     function getSortedElements() { return Array.from(selectedElements).sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1); }
@@ -567,7 +668,8 @@
 
         try {
             const blobData = await renderToCanvas();
-            if (blobData) { downloadFile(blobData, 'jpg', 'image/jpeg'); showToast('✅ 图像已成功保存！', 'info'); }
+            // html-to-image@1.11.11 的 toBlob() 实际返回 PNG；扩展名与 MIME 保持一致后系统可正常预览。
+            if (blobData) { downloadFile(blobData, 'png', 'image/png'); showToast('✅ 图像已成功保存！', 'info'); }
         } catch (e) {
             console.error('[ChatShare Error]:', e);
             // 🟢 核心防御3：如果依然有错，捕获真实的错误信息而不只是 undefined
