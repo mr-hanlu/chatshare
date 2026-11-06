@@ -1,8 +1,10 @@
 // ==UserScript==
 // @name         ChatShare - AI 对话下载器
+// @name:en         ChatShare - AI Chat Exporter
 // @namespace    https://github.com/mr-hanlu/chatshare
 // @version      0.2.2
 // @description  支持几乎所有的ai对话网页的 Markdown 导出 + 图像导出。需要支持新网址，在@match中自行追加使用。主要用于：claude｜chatgpt｜gemini｜grok｜doubao｜qwen｜deepseek｜minimax｜kimi｜yuanbao｜chatglm｜openrouter｜poe等。
+// @description:en  Export almost any AI chat page to Markdown or an image. To support a new site, add it to @match. Mainly for: claude | chatgpt | gemini | grok | doubao | qwen | deepseek | minimax | kimi | yuanbao | chatglm | openrouter | poe, etc.
 // @author       hanlu
 // @license      MIT
 // @icon         data:image/png;base64,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
@@ -46,6 +48,91 @@
 
     if (window.self !== window.top) return;
     if (document.getElementById('chatshare-optimized-host')) return;
+
+    // [chatshare-i18n-v1] UI language: Chinese if the browser's first language is zh*, otherwise English.
+    //   override: localStorage.chatshareLang = 'zh' | 'en' (then reload). Exported file headings are not translated.
+    const I18N = {
+        en: {
+            title: "📦 Chat Exporter",
+            statsSelected: "Selected ",
+            statsBlocks: " blocks · 👤 ",
+            roleHint: "Shift + Click selected content: switch User / AI",
+            exportMd: "📄 Export Markdown",
+            exportImg: "🖼️ Export Image",
+            selectAll: "✅ Select All Messages",
+            fastMd: "⚡ Instant Markdown (OpenRouter)",
+            noBlocks: "No message blocks found. Select manually, or update SELECT_ALL_RULES.",
+            loadingOlder: "⏳ Loading older messages...",
+            loadingOlderN: "⏳ Loading older messages... ({n})",
+            scanning: "⏳ Scanning {pct}% · {n} blocks",
+            selectedTooLong: "Selected {n} blocks. Too long for image export - use Markdown.",
+            selectedN: "Selected {n} message block(s)",
+            longWarn: "📏 Exceeded safe length for image. Use Markdown for long chats!",
+            badgeUser: "👤 User",
+            badgeAi: "🤖 AI",
+            selectFirst: "⚠️ Please select content first!",
+            mdOk: "✅ Markdown exported successfully!",
+            libFail: "❌ Render library failed to load. Check network.",
+            imgTooLong: "❌ Content is too long for image export. Select fewer blocks or use Markdown!",
+            fetchingRes: "⏳ Fetching fonts/resources (First time is slow)...",
+            imgOk: "✅ Image saved successfully!",
+            corsFail: "Resource blocked by CORS or tainted. Please use Markdown export instead.",
+            genFail: "❌ Generation failed: {msg}",
+            procNode: "⏳ Processing node {i}/{n}...",
+            compress: "⏳ Compressing image assets...",
+            layout: "⏳ Calculating layout boundaries...",
+            layers: "⏳ Generating layers...",
+            imgHuge: "🚧 Image height is too large. Cancelled to prevent crash. Please use Markdown!",
+            readingDb: "⏳ Reading chat database...",
+            dbOk: "✅ Exported {n} messages from database in {ms}ms",
+            dbFallback: "⚠️ Database read failed ({why}). Falling back to scroll..."
+        },
+        zh: {
+            title: "📦 对话导出",
+            statsSelected: "已选 ",
+            statsBlocks: " 块 · 👤 ",
+            roleHint: "Shift + 点击已选内容：切换 用户 / AI",
+            exportMd: "📄 导出 Markdown",
+            exportImg: "🖼️ 导出图片",
+            selectAll: "✅ 全选消息",
+            fastMd: "⚡ 即时导出 Markdown (OpenRouter)",
+            noBlocks: "未找到消息块。请手动选择，或更新 SELECT_ALL_RULES。",
+            loadingOlder: "⏳ 正在加载更早的消息...",
+            loadingOlderN: "⏳ 正在加载更早的消息... ({n})",
+            scanning: "⏳ 扫描中 {pct}% · {n} 块",
+            selectedTooLong: "已选 {n} 块。内容过长，无法导出图片，请使用 Markdown。",
+            selectedN: "已选 {n} 个消息块",
+            longWarn: "📏 已超出图片安全长度，长对话请使用 Markdown！",
+            badgeUser: "👤 用户",
+            badgeAi: "🤖 AI",
+            selectFirst: "⚠️ 请先选择内容！",
+            mdOk: "✅ Markdown 导出成功！",
+            libFail: "❌ 渲染库加载失败，请检查网络。",
+            imgTooLong: "❌ 内容过长，无法导出图片。请减少选择或使用 Markdown！",
+            fetchingRes: "⏳ 正在获取字体/资源（首次较慢）...",
+            imgOk: "✅ 图片保存成功！",
+            corsFail: "资源被跨域策略拦截或画布被污染，请改用 Markdown 导出。",
+            genFail: "❌ 生成失败：{msg}",
+            procNode: "⏳ 正在处理节点 {i}/{n}...",
+            compress: "⏳ 正在压缩图片资源...",
+            layout: "⏳ 正在计算布局边界...",
+            layers: "⏳ 正在生成图层...",
+            imgHuge: "🚧 图片高度过大，已取消以防崩溃。请使用 Markdown！",
+            readingDb: "⏳ 正在读取对话数据库...",
+            dbOk: "✅ 已从数据库导出 {n} 条消息，用时 {ms}ms",
+            dbFallback: "⚠️ 数据库读取失败（{why}），改用滚动加载..."
+        }
+    };
+    const LANG = (() => {
+        try { const o = localStorage.getItem('chatshareLang'); if (o === 'zh' || o === 'en') return o; } catch (e) { }
+        const first = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+        return /^zh/i.test(first) ? 'zh' : 'en';
+    })();
+    function t(key, vars) {
+        let s = (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key;
+        if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+        return s;
+    }
 
     let isSelectMode = false;
     let selectedElements = new Set();
@@ -108,32 +195,32 @@
     const fab = document.createElement('div'); fab.className = 'fab right'; fab.textContent = '🤖';
     const panel = document.createElement('div'); panel.className = 'panel';
     const header = document.createElement('div'); header.className = 'header'; header.id = 'drag-handle';
-    const titleSpan = document.createElement('span'); titleSpan.textContent = '📦 Chat Exporter';
+    const titleSpan = document.createElement('span'); titleSpan.textContent = t('title');
     const btnClose = document.createElement('span'); btnClose.className = 'close-btn'; btnClose.textContent = '×';
     header.append(titleSpan, btnClose);
     const body = document.createElement('div'); body.className = 'body';
     const statsContainer = document.createElement('div'); statsContainer.className = 'stats';
-    statsContainer.append(document.createTextNode('Selected '));
+    statsContainer.append(document.createTextNode(t('statsSelected')));
     const countSpan = document.createElement('span'); countSpan.className = 'count'; countSpan.textContent = '0';
     const userCountSpan = document.createElement('span'); userCountSpan.className = 'user-count'; userCountSpan.textContent = '0';
     const aiCountSpan = document.createElement('span'); aiCountSpan.className = 'ai-count'; aiCountSpan.textContent = '0';
-    statsContainer.append(countSpan, document.createTextNode(' blocks · 👤 '), userCountSpan, document.createTextNode(' / 🤖 '), aiCountSpan);
-    const roleHint = document.createElement('div'); roleHint.className = 'role-hint'; roleHint.textContent = 'Shift + Click selected content: switch User / AI';
-    const btnMd = document.createElement('button'); btnMd.className = 'btn-md'; btnMd.textContent = '📄 Export Markdown';
-    const btnImg = document.createElement('button'); btnImg.className = 'btn-img'; btnImg.textContent = '🖼️ Export Image';
+    statsContainer.append(countSpan, document.createTextNode(t('statsBlocks')), userCountSpan, document.createTextNode(' / 🤖 '), aiCountSpan);
+    const roleHint = document.createElement('div'); roleHint.className = 'role-hint'; roleHint.textContent = t('roleHint');
+    const btnMd = document.createElement('button'); btnMd.className = 'btn-md'; btnMd.textContent = t('exportMd');
+    const btnImg = document.createElement('button'); btnImg.className = 'btn-img'; btnImg.textContent = t('exportImg');
 
     // 👇 Select All Button (Blue)
     const btnSelectAll = document.createElement('button');
     btnSelectAll.className = 'btn-md';
     btnSelectAll.style.background = '#3b82f6';
     btnSelectAll.style.marginBottom = '4px';
-    btnSelectAll.textContent = '✅ Select All Messages';
+    btnSelectAll.textContent = t('selectAll');
     // [chatshare-fastmd-v6b] instant Markdown button (OpenRouter only)
     const IS_OPENROUTER = /(^|\.)openrouter\.ai$/.test(location.hostname);
     const btnFastMd = document.createElement('button');
     btnFastMd.className = 'btn-md';
     btnFastMd.style.background = '#7c3aed';
-    btnFastMd.textContent = '\u26A1 Instant Markdown (OpenRouter)';
+    btnFastMd.textContent = t('fastMd');
     body.append(statsContainer, roleHint, btnSelectAll, btnFastMd, btnMd, btnImg);
     panel.append(header, body);
 
@@ -278,7 +365,7 @@
                 if (collect() > 0) { grew = true; batches++; break; }
             }
             quiet = grew ? 0 : quiet + 1;
-            report('\u23F3 Loading older messages... (' + seen.size + ')');
+            report(t('loadingOlderN', { n: seen.size }));
         }
         const afterTop = seen.size;
         const topMs = Math.round(performance.now() - t0);
@@ -301,7 +388,7 @@
             const cur = sc.scrollTop;
             if (steps % 10 === 0) {
                 const pct = Math.min(100, Math.round(100 * (cur + sc.clientHeight) / Math.max(1, sc.scrollHeight)));
-                report('\u23F3 Scanning ' + pct + '% \u00B7 ' + seen.size + ' blocks');
+                report(t('scanning', { pct: pct, n: seen.size }));
             }
             if (cur + sc.clientHeight >= sc.scrollHeight - 2) { reachedBottom = true; break; }
             if (cur <= prevTop) { if (++stuck >= STUCK_LIMIT) break; } else stuck = 0;
@@ -327,14 +414,14 @@
         if (saRule && saRule.preload && saRule.sel) {
             const saLabel = btnSelectAll.textContent;
             isProcessing = true; btnSelectAll.disabled = true;
-            btnSelectAll.textContent = '⏳ Loading older messages...';
+            btnSelectAll.textContent = t('loadingOlder');
             try { await preloadOlderMessages(saRule.sel, msg => { btnSelectAll.textContent = msg; }); }
             catch (e) { console.error('[ChatShare] preload failed:', e); }
             finally { isProcessing = false; btnSelectAll.disabled = false; btnSelectAll.textContent = saLabel; }
         }
         const candidates = findMessageCandidates();
         if (candidates.length === 0) {
-            showToast('No message blocks found. Select manually, or update SELECT_ALL_RULES.', 'warn');
+            showToast(t('noBlocks'), 'warn');
             return;
         }
         let added = 0;
@@ -350,10 +437,10 @@
         });
         updateRoleUI();
         if (calcTotalEstimatedHeight() > 16000 && !hasWarnedLongImage) {
-            showToast('Selected ' + added + ' blocks. Too long for image export - use Markdown.', 'warn');
+            showToast(t('selectedTooLong', { n: added }), 'warn');
             hasWarnedLongImage = true;
         } else {
-            showToast('Selected ' + added + ' message block(s)', 'info');
+            showToast(t('selectedN', { n: added }), 'info');
         }
     }
     btnSelectAll.addEventListener('click', () => { selectAllMessages(); });
@@ -437,7 +524,7 @@
     btnFastMd.addEventListener('click', async () => {
         if (isProcessing) return;
         const label = btnFastMd.textContent;
-        isProcessing = true; btnFastMd.disabled = true; btnFastMd.textContent = '\u23F3 Reading chat database...';
+        isProcessing = true; btnFastMd.disabled = true; btnFastMd.textContent = t('readingDb');
         let res = null, why = '';
         try { res = await readOpenRouterChat(); checkAgainstPage(res); }
         catch (e) { why = (e && e.message) || String(e); console.warn('[ChatShare] v6b database path failed, falling back to scroll:', e); }
@@ -446,11 +533,11 @@
             downloadFile(buildMarkdownFromMessages(res.messages), 'md', 'text/markdown;charset=utf-8');
             console.log('[ChatShare] v6b: db=' + res.db + ' room=' + res.room + ' messages=' + res.messages.length + '/' + res.total +
                 ' parts=' + res.parts + ' empty=' + res.empty + ' ms=' + res.ms);
-            showToast('\u2705 Exported ' + res.messages.length + ' messages from database in ' + res.ms + 'ms', 'info');
+            showToast(t('dbOk', { n: res.messages.length, ms: res.ms }), 'info');
             closePanelAndExit();
             return;
         }
-        showToast('\u26A0\uFE0F Database read failed (' + why + '). Falling back to scroll...', 'warn');
+        showToast(t('dbFallback', { why: why }), 'warn');
         console.log('[ChatShare] v6b fallback reason: ' + why);
         await selectAllMessages();
         if (selectedElements.size > 0) btnMd.click();
@@ -531,7 +618,7 @@
 
             const th = calcTotalEstimatedHeight();
             if (th > 16000 && !hasWarnedLongImage) {
-                showToast('📏 Exceeded safe length for image. Use Markdown for long chats!', 'warn'); hasWarnedLongImage = true;
+                showToast(t('longWarn'), 'warn'); hasWarnedLongImage = true;
             }
         }
         countSpan.textContent = selectedElements.size;
@@ -605,7 +692,7 @@
             const role = guessRole(el);
             const badge = document.createElement('div');
             badge.className = `role-badge ${role}`;
-            badge.textContent = role === 'user' ? '👤 User' : '🤖 AI';
+            badge.textContent = role === 'user' ? t('badgeUser') : t('badgeAi');
             const top = rect.top >= 23 ? rect.top - 21 : rect.top + 2;
             badge.style.left = `${Math.max(2, Math.min(window.innerWidth - 76, rect.left))}px`;
             badge.style.top = `${Math.max(2, top)}px`;
@@ -741,7 +828,7 @@
     // ================= Markdown 核心导出引擎 =================
     btnMd.addEventListener('click', () => {
         if (selectedElements.size === 0) {
-            showToast('⚠️ Please select content first! ', 'warn'); return;
+            showToast(t('selectFirst'), 'warn'); return;
         }
 
         const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' }); td.escape = function(string) { return string; };
@@ -778,7 +865,7 @@
         });
 
         downloadFile(md, 'md', 'text/markdown;charset=utf-8');
-        showToast('✅ Markdown exported successfully!', 'info');
+        showToast(t('mdOk'), 'info');
         closePanelAndExit();
     });
 
@@ -914,29 +1001,29 @@
     }
 
     btnImg.addEventListener('click', async () => {
-        if (selectedElements.size === 0) { showToast('⚠️ Please select content first!', 'warn'); return; }
-        if (typeof window.htmlToImage === 'undefined') { showToast('❌ Render library failed to load. Check network.', 'error'); return; }
+        if (selectedElements.size === 0) { showToast(t('selectFirst'), 'warn'); return; }
+        if (typeof window.htmlToImage === 'undefined') { showToast(t('libFail'), 'error'); return; }
 
         const estHeight = calcTotalEstimatedHeight();
-        if (estHeight > 20000) { showToast('❌ Content is too long for image export. Select fewer blocks or use Markdown!', 'error'); return; }
+        if (estHeight > 20000) { showToast(t('imgTooLong'), 'error'); return; }
 
         if (isProcessing) return;
         isProcessing = true;
 
         if (currentHoverElement) { removeHover(currentHoverElement); currentHoverElement = null; }
 
-        btnImg.disabled = true; btnImg.textContent = '⏳ Fetching fonts/resources (First time is slow)...';
+        btnImg.disabled = true; btnImg.textContent = t('fetchingRes');
 
         try {
             const blobData = await renderToCanvas();
             // html-to-image@1.11.11 的 toBlob() 实际返回 PNG；扩展名与 MIME 保持一致后系统可正常预览。
-            if (blobData) { downloadFile(blobData, 'png', 'image/png'); showToast('✅ Image saved successfully!', 'info'); }
+            if (blobData) { downloadFile(blobData, 'png', 'image/png'); showToast(t('imgOk'), 'info'); }
         } catch (e) {
             console.error('[ChatShare Error]:', e);
             // 🟢 核心防御3：如果依然有错，捕获真实的错误信息而不只是 undefined
-            const msg = (e && e.message) ? e.message : (typeof e === 'string' ? e : 'Resource blocked by CORS or tainted. Please use Markdown export instead.');
-            showToast(`❌ Generation failed: ${msg}`, 'error');
-        } finally { isProcessing = false; btnImg.disabled = false; btnImg.textContent = '🖼️ Export Image'; closePanelAndExit(); }
+            const msg = (e && e.message) ? e.message : (typeof e === 'string' ? e : t('corsFail'));
+            showToast(t('genFail', { msg: msg }), 'error');
+        } finally { isProcessing = false; btnImg.disabled = false; btnImg.textContent = t('exportImg'); closePanelAndExit(); }
     });
 
     async function renderToCanvas() {
@@ -978,13 +1065,13 @@
             wrap.append(head, clone); fragment.appendChild(wrap);
 
             if ((i + 1) % 5 === 0 || i === sortedEls.length - 1) {
-                btnImg.textContent = `⏳ Processing node ${i + 1}/${sortedEls.length}...`; await new Promise(r => setTimeout(r, 0));
+                btnImg.textContent = t('procNode', { i: i + 1, n: sortedEls.length }); await new Promise(r => setTimeout(r, 0));
             }
         }
         card.appendChild(fragment);
 
-        btnImg.textContent = `⏳ Compressing image assets...`; await preProcessImages(card);
-        btnImg.textContent = `⏳ Calculating layout boundaries...`; document.body.appendChild(outerWrapper);
+        btnImg.textContent = t('compress'); await preProcessImages(card);
+        btnImg.textContent = t('layout'); document.body.appendChild(outerWrapper);
 
         await document.fonts.ready; wrapper.offsetHeight; await new Promise(r => requestAnimationFrame(r));
         let realCardW = card.scrollWidth; const MIN_CARD_W = 770; if (realCardW < MIN_CARD_W) realCardW = MIN_CARD_W;
@@ -992,10 +1079,10 @@
         outerWrapper.style.width = finalWidth + 'px'; wrapper.style.width = finalWidth + 'px'; card.style.width = realCardW + 'px';
         await new Promise(r => requestAnimationFrame(r));
 
-        btnImg.textContent = `⏳ Generating layers...`;
+        btnImg.textContent = t('layers');
         let pr = 1.5;
         if (finalHeight * 1.5 <= 16000) pr = 1.5; else if (finalHeight * 1.25 <= 16000) pr = 1.25; else if (finalHeight * 1.0 <= 16000) pr = 1.0; else if (finalHeight * 0.8 <= 16000) pr = 0.8;
-        else { showToast('🚧 Image height is too large. Cancelled to prevent crash. Please use Markdown!', 'error'); if (document.body.contains(outerWrapper)) document.body.removeChild(outerWrapper); return null; }
+        else { showToast(t('imgHuge'), 'error'); if (document.body.contains(outerWrapper)) document.body.removeChild(outerWrapper); return null; }
 
         try {
             // 🟢 核心防御2：allowTaint 改为 false，严禁污染的 Canvas，并利用 imagePlaceholder 安全跳过坏图
